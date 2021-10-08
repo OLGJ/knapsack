@@ -10,6 +10,8 @@ brute_force_knapsack(x, W, parallel = FALSE)
 \item{x}{Knapsack data frame}
 
 \item{W}{Knapsack size}
+
+\item{parallel}{Optional argument to run a parallel implementation}
 }
 \value{
 elements and the sum of the corresponding values

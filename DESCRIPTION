@@ -4,14 +4,14 @@ Version: 0.0.0.9000
 URL: https://github.com/OLGJ/knapsack
 BugReports: https://github.com/OLGJ/knapsack/issues
 Authors@R: c(
-  person("Amer",
-         "Memic",
-         email = "ameme698@student.liu.se",
-         role = c("cre", "aut")),
   person("Olof",
          "Josefsson",
          email = "olojo524@student.liu.se",
          role = "aut"),
+  person("Amer",
+         "Memic",
+         email = "ameme698@student.liu.se",
+         role = c("cre", "aut")),
   person("Shahreen",
          "Saleem",
          email = "shahreen.saleem111@gmail.com",

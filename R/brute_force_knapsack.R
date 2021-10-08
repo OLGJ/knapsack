@@ -2,7 +2,7 @@
 #'
 #' @param x Knapsack data frame
 #' @param W Knapsack size
-#'
+#' @param parallel Optional argument to run a parallel implementation
 #' @return elements and the sum of the corresponding values
 #' @import parallel
 #' @export
@@ -40,8 +40,7 @@ brute_force_knapsack <- function(x, W, parallel = FALSE){
   }
   else{
     ncores <- parallel::detectCores()-1
-    cluster <- makeCluster(ncores, type = "PSOCK")
-    #clusterExport
+    cluster <- parallel::makeCluster(ncores, type = "PSOCK")
 
     parallel_brute <- function(i){
       m <- intToBits(i)
@@ -61,5 +60,3 @@ brute_force_knapsack <- function(x, W, parallel = FALSE){
     return(list("value"=c[1], "elements"=c(c[2:3])))
   }
 }
-
-#brute_force_knapsack(x = knapsack_objects[1:8,], W = 3500, TRUE)
