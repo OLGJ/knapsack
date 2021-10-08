@@ -1,0 +1,151 @@
+---
+title: "Knapsack"
+author: Olof Josefsson
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{lab_report_knapsack}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(knapsack)
+```
+
+# 1.1.2
+```{r}
+library(knapsack)
+RNGversion(min(as.character(getRversion()),"3.5.3"))
+set.seed(42, kind = "Mersenne-Twister", normal.kind = "Inversion")
+n <- 2000
+knapsack_objects <-
+data.frame(
+w=sample(1:4000, size = n, replace = TRUE),
+v=runif(n = n, 0, 10000)
+)
+
+system.time(brute_force_knapsack(x = knapsack_objects[1:16,], W = 3500))
+```
+# 1.1.3
+```{r}
+library(knapsack)
+RNGversion(min(as.character(getRversion()),"3.5.3"))
+set.seed(42, kind = "Mersenne-Twister", normal.kind = "Inversion")
+n <- 2000
+knapsack_objects <-
+data.frame(
+w=sample(1:4000, size = n, replace = TRUE),
+v=runif(n = n, 0, 10000)
+)
+
+system.time(knapsack_dynamic(x = knapsack_objects[1:500,], W = 3500))
+```
+# 1.1.4
+```{r}
+library(knapsack)
+RNGversion(min(as.character(getRversion()),"3.5.3"))
+set.seed(42, kind = "Mersenne-Twister", normal.kind = "Inversion")
+n <- 1000000
+knapsack_objects <-
+data.frame(
+w=sample(1:4000, size = n, replace = TRUE),
+v=runif(n = n, 0, 10000)
+)
+
+system.time(greedy_knapsack(x = knapsack_objects[1:1000000,], W = 3500))
+```
+
+# 1.1.6 Profiling
+## Brute force
+For the brute force algorithm, the part that was registered as something that took
+memory and time while profiling was the following line of code:
+`weight <- sum(w[m==1])`.
+
+Replacing this with `weight <- sum(unlist(w[m==1], use.names=FALSE))` made the code run faster and no trace of time or memory consumption was thereafter shown.
+
+## Dynamic 
+For the dynamic knapsack implementation the thing that took allocated memory and 
+time was `m[i, j] = max(m[i-1, j], m[i-1,j-w[i-1]]+v[i-1])`. However no solution
+to a better way of implementing this piece of the function was found.
+
+## Greedy
+For the profiling of the greedy function a bottleneck was identified in the following line of code:
+`x<-x[rev(order(x$ratio)),]`
+
+Below is how I tried to fix this using microbenchmark package. **It takes some time to run**
+
+```{r}
+library(knapsack)
+library(microbenchmark)
+# Set up data
+RNGversion(min(as.character(getRversion()),"3.5.3"))
+set.seed(42, kind = "Mersenne-Twister", normal.kind = "Inversion")
+n <- 1000000
+knapsack_objects <-
+  data.frame(
+  w=sample(1:4000, size = n, replace = TRUE),
+  v=runif(n = n, 0, 10000)
+)
+# Add df column to knapsack_objects.
+knapsack_objects["ratio"] = knapsack_objects$v/knapsack_objects$w
+
+##### Functions for testing #####
+way1 <- function(x = knapsack_objects[1:1000000,]){
+  x<-x[rev(order(x$ratio)),]
+  return(x)}
+way2 <- function(x = knapsack_objects[1:1000000,]){
+  x<- x[order(x$ratio),]
+  x<- x[nrow(x):1,]
+  return(x)}
+way3 <- function(x = knapsack_objects[1:1000000,]){
+  x<- x[order(-x$ratio), ]
+  return(x)}
+
+a <- way1()
+b <- way2()
+c <- way3()
+
+##### Make sure output is the same #####
+all.equal(a, b)
+all.equal(a, c)
+
+##### Output of benchmarking #####
+microbenchmark::microbenchmark(way1(),way2(), way3(), times = 100L)
+```
+
+Testing this way found that `way1()` was the most stable way of doing it, although `way3()`
+sometimes had the shortest run time. Therefor this bottleneck was not corrected in any way,
+but rather left as it was before the profiling/benchmarking.
+
+## General comment after profiling
+The overall run time and allocated memory of the different functions tended to be rather
+fast -> very few identifications of potential bottlenecks. Therefor the performance gain in
+this particular lab was minimal. Nonetheless it seems like a great tool for writing faster code (especially the `microbencmark` package).
+
+# 1.1.8 
+For the parallel part of the brute force algorithm, `parLapply`
+was implemented. This was chosen as it was supported by windows OS. A performance gain 
+was not gained via the parallel implementation, as generating the needed cluster takes a lot of time.
+
+```{r}
+library(knapsack)
+library(parallel)
+RNGversion(min(as.character(getRversion()),"3.5.3"))
+set.seed(42, kind = "Mersenne-Twister", normal.kind = "Inversion")
+n <- 2000
+knapsack_objects <-
+data.frame(
+w=sample(1:4000, size = n, replace = TRUE),
+v=runif(n = n, 0, 10000)
+)
+
+system.time(brute_force_knapsack(x = knapsack_objects[1:16,], W = 3500, TRUE))
+```
