@@ -4,7 +4,7 @@ author: Olof Josefsson
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{lab_report_knapsack}
+  %\VignetteIndexEntry{Knapsack}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -134,18 +134,3 @@ this particular lab was minimal. Nonetheless it seems like a great tool for writ
 For the parallel part of the brute force algorithm, `parLapply`
 was implemented. This was chosen as it was supported by windows OS. A performance gain 
 was not gained via the parallel implementation, as generating the needed cluster takes a lot of time.
-
-```{r}
-library(knapsack)
-library(parallel)
-RNGversion(min(as.character(getRversion()),"3.5.3"))
-set.seed(42, kind = "Mersenne-Twister", normal.kind = "Inversion")
-n <- 2000
-knapsack_objects <-
-data.frame(
-w=sample(1:4000, size = n, replace = TRUE),
-v=runif(n = n, 0, 10000)
-)
-
-system.time(brute_force_knapsack(x = knapsack_objects[1:16,], W = 3500, TRUE))
-```
